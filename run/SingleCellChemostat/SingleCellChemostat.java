@@ -16,6 +16,7 @@ import processing.core.PConstants;
 import processing.core.PGraphics3D;
 
 import javax.vecmath.Vector3d;
+import java.lang.Math;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -27,14 +28,32 @@ import java.util.List;
  */
 public class SingleCellChemostat {
 
+    // Simulation export options. true = simulation results go to .csv. false = shows GUI
     @Parameter(names = "-export", description = "Enable export mode.")
-    private boolean export = false;
+    private boolean export = true;
 
+    @Parameter(names = "-dt", arity = 1, description = "Export data every x [simulation time in s]")
+    public int dt_export = 1;
+
+    // Simulation setup parameters
     @Parameter(names = "-dim", arity = 3, description = "The dimensions (x, y, z) of simulation environment (um).")
     public List<Double> simDimensions = new ArrayList<>(Arrays.asList(new Double[] {1., 50., 1.}));
 
     @Parameter(names = "-pop", arity = 1, description = "Initial seed population (n_total).")
     public int initialPopulation = 5;
+
+    // Cell parameters
+    @Parameter(names="-gr_stdv",arity=1,description = "growth rate standard deviation")
+    public double growth_stdv=0.05;
+
+    @Parameter(names="-gr_mean",arity=1,description = "growth rate mean")
+    public double growth_mean=0.2; // BSimCapsuleBacterium default is 0.2
+
+    @Parameter(names="-len_stdv",arity=1,description = "elongation threshold standard deviation")
+    public double length_stdv=0.1;
+
+    @Parameter(names="-len_mean",arity=1,description = "elongation threshold mean")
+    public double length_mean=5.0; // BsimCapsuleBacterium default is 2*L_initial. Catie: 7.0
 
     /**
      * Whether to enable growth in the ticker etc. or not...
@@ -62,8 +81,8 @@ public class SingleCellChemostat {
 
         // create the simulation object
         BSim sim = new BSim();
-        sim.setDt(0.01);				    // Simulation Timestep
-        sim.setSimulationTime(96000);       // 21600 = 6 hours
+        sim.setDt(0.0001);				    // Simulation Timestep
+        sim.setSimulationTime(100);       // 21600 = 6 hours
         sim.setTimeFormat("0.00");		    // Time Format for display
         sim.setBound(simX, simY, simZ);		// Simulation Boundaries
 
@@ -97,7 +116,7 @@ public class SingleCellChemostat {
 
             for(BSimCapsuleBacterium otherBac : bacteriaAll){
                 distance.sub(otherBac.position, pos);
-                if(distance.lengthSquared() < 4.5){
+                if(distance.lengthSquared() < length_mean){
                     continue generator;
                 }
             }
@@ -107,7 +126,13 @@ public class SingleCellChemostat {
                     new Vector3d(pos.x, pos.y + bL*Math.cos(angle), pos.z)
             );
 
-            bac.L = bL;
+            // assigns a growth rate and a division length to each bacterium according to a normal distribution
+            double growthRate = BSimUtils.sampleNormal(growth_mean,growth_stdv);
+            bac.setK_growth(growthRate);
+
+            double lengthThreshold = BSimUtils.sampleNormal(length_mean,length_stdv);
+            bac.setElongationThreshold(lengthThreshold);
+
             bacteriaAll.add(bac);
         }
 
@@ -353,7 +378,7 @@ public class SingleCellChemostat {
                 @Override
                 public void before() {
                     super.before();
-                    write("per Act; per Rep; id, p1x, p1y, p1z, p2x, p2y, p2z, px");
+                    write("time (s); id, p1x, p1y, p1z, p2x, p2y, p2z, py");
                 }
 
                 @Override
@@ -363,7 +388,7 @@ public class SingleCellChemostat {
                     buffer += sim.getFormattedTime() + "\n";
                     write(buffer);
 
-                    write("acts");
+                    write("Frame");
 
                     buffer = "";
                     for(BSimCapsuleBacterium b : bacteriaAll) {
@@ -373,13 +398,13 @@ public class SingleCellChemostat {
                                 + "," + formatter.format(b.x2.x)
                                 + "," + formatter.format(b.x2.y)
                                 + "," + formatter.format(b.x2.z)
-                                + "," + formatter.format(b.position.x)
+                                + "," + formatter.format(b.position.y)
                                 + "\n";
                     }
                     write(buffer);
                 }
             };
-            posLogger.setDt(1);			// Set export time step
+            posLogger.setDt(dt_export);			// Set export time step
             sim.addExporter(posLogger);
 
             /**
