@@ -195,21 +195,21 @@ public class BSimCapsuleBacterium {
          *
          */
         wallBelow(x1.x, x1force, new Vector3d(1,0,0));
-        wallBelow(x1.y, x1force, new Vector3d(0,1,0)); // TOP //
+        //wallBelow(x1.y, x1force, new Vector3d(0,1,0)); // TOP //
         wallBelow(x1.z, x1force, new Vector3d(0,0,1));
 
         wallAbove(x1.x, x1force, new Vector3d(-1, 0, 0), sim.getBound().x);
 
-//        wallAbove(x1.y, x1force, new Vector3d(0, -1, 0), sim.getBound().y); // BOTTOM //
+        //wallAbove(x1.y, x1force, new Vector3d(0, -1, 0), sim.getBound().y); // BOTTOM // ***********These were initially commented -AY
         wallAbove(x1.z, x1force, new Vector3d(0, 0, -1), sim.getBound().z);
 
         wallBelow(x2.x, x2force, new Vector3d(1,0,0));
-        wallBelow(x2.y, x2force, new Vector3d(0,1,0)); // TOP //
+        //wallBelow(x2.y, x2force, new Vector3d(0,1,0)); // TOP //
         wallBelow(x2.z, x2force, new Vector3d(0,0,1));
 
         wallAbove(x2.x, x2force, new Vector3d(-1,0,0), sim.getBound().x);
 
-//        wallAbove(x2.y, x2force, new Vector3d(0, -1, 0), sim.getBound().y); // BOTTOM //
+        //wallAbove(x2.y, x2force, new Vector3d(0, -1, 0), sim.getBound().y); // BOTTOM // ***********These were initially commented -AY
         wallAbove(x2.z, x2force, new Vector3d(0, 0, -1), sim.getBound().z);
     }
 
