@@ -9,6 +9,7 @@ import bsim.capsule.RelaxationMoverGrid;
 import bsim.draw.BSimDrawer;
 import bsim.draw.BSimP3DDrawer;
 import bsim.export.BSimLogger;
+import bsim.export.BSimMovExporter;
 import bsim.export.BSimPngExporter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -413,6 +414,14 @@ public class SingleCellChemostat {
             BSimPngExporter imageExporter = new BSimPngExporter(sim, drawer, filePath);
             imageExporter.setDt(30);
             sim.addExporter(imageExporter);
+
+            /**
+             * Export a movie file
+             */
+            BSimMovExporter movieExporter = new BSimMovExporter(sim, drawer, filePath + "SSchemostat.mov");
+			movieExporter.setSpeed(10);
+			movieExporter.setDt(1); // Output every 1 s of simulation time
+			sim.addExporter(movieExporter);
 
             sim.export();
 
